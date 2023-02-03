@@ -1,6 +1,6 @@
-# fly.toml file generated for focal on 2023-02-03T18:20:26Z
+# fly.toml file generated for focalf on 2023-02-03T20:29:22Z
 
-app = "focal"
+app = "focalf"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []

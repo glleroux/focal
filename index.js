@@ -1,3 +1,6 @@
+require('dotenv').config()
+const Post = require('./models/post')
+
 const express = require('express')
 const app = express()
 const cors = require('cors')
@@ -6,46 +9,45 @@ app.use(cors())
 app.use(express.json())
 app.use(express.static('build'))
 
-let posts = [
-    {
-        "id": 1,
-        "caption": "HTML is easy",
-        "imageLocation": "https:/url.com/1"
-    },
-    {
-        "id": 2,
-        "caption": "Browser can execute only JavaScript",
-        "imageLocation": "https:/url.com/2"
-    },
-    {
-        "id": 3,
-        "caption": "GET and POST are the most important methods of HTTP protocol",
-        "imageLocation": "https:/url.com/3"
-    },
-    {
-        "caption": "Get up and sing",
-        "id": 4
-    },
-    {
-        "caption": "get up and sing",
-        "id": 5
-    },
-    {
-        "caption": "get down get dwn",
-        "id": 6
-    },
-    {
-        "caption": "still working",
-        "id": 7
-    }
-]
+// let posts = [
+//     {
+//         "id": 1,
+//         "caption": "HTML is easy",
+//         "imageLocation": "https:/url.com/1"
+//     },
+//     {
+//         "id": 2,
+//         "caption": "Browser can execute only JavaScript",
+//         "imageLocation": "https:/url.com/2"
+//     },
+//     {
+//         "id": 3,
+//         "caption": "GET and POST are the most important methods of HTTP protocol",
+//         "imageLocation": "https:/url.com/3"
+//     },
+//     {
+//         "caption": "Get up and sing",
+//         "id": 4
+//     },
+//     {
+//         "caption": "get up and sing",
+//         "id": 5
+//     },
+//     {
+//         "caption": "get down get dwn",
+//         "id": 6
+//     },
+//     {
+//         "caption": "still working",
+//         "id": 7
+//     }
+// ]
 
-app.get('/', (request, response) => {
-    response.send('<h1>Hello World!</h1>')
-})
 
 app.get('/api/posts', (request, response) => {
-    response.json(posts)
+    Post.find({}).then(posts => {
+        response.json(posts)
+    })
 })
 
 app.get('/api/posts/:id', (request, response) => {

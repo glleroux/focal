@@ -1,21 +1,27 @@
 {
-  "name": "focal-server",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node index.js",
-    "dev": "nodemon index.js"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "cors": "^2.8.5",
-    "express": "^4.18.2"
-  },
-  "devDependencies": {
-    "nodemon": "^2.0.20"
-  }
+	"name": "focal-server",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "node index.js",
+		"dev": "nodemon index.js",
+		"build:ui": "rm -rf build && cd ../focal-fso/ && npm run build && cp -r build ../focal-server",
+		"deploy": "fly deploy",
+		"deploy:full": "npm run build:ui && npm run deploy",
+		"logs:prod": "fly logs"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"cors": "^2.8.5",
+		"dotenv": "^16.0.3",
+		"express": "^4.18.2",
+		"mongoose": "^6.9.0"
+	},
+	"devDependencies": {
+		"nodemon": "^2.0.20"
+	}
 }
