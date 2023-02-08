@@ -1,32 +1,38 @@
 const postsRouter = require('express').Router()
 const Post = require('../models/post')
 
-postsRouter.get('/', (request, response) => {
-    Post.find({}).then(posts => {
-        response.json(posts)
-    })
+postsRouter.get('/', async (request, response) => {
+    const posts = await Post.find({})
+    response.json(posts)
 })
 
-postsRouter.get('/:id', (request, response, next) => {
-    Post.findById(request.params.id)
-        .then(post => {
-            if (post) {
-                response.json(note)
-            } else {
-                response.status(404).end()
-            }
-        })
-        .catch(error => next(error))
+postsRouter.get('/:id', async (request, response, next) => {
+    try {
+        const post = await Post.findById(request.params.id)
+        if (post) {
+            response.json(post)
+        } else {
+            response.status(404).end()
+        }
+    } catch (error) {
+        next(error)
+    }
 })
 
-postsRouter.delete('/:id', (request, response) => {
-    Post.findByIdAndRemove(request.params.id)
-        .then(post => {
+postsRouter.delete('/:id', async (request, response) => {
+    try {
+        const post = await Post.findByIdAndRemove(request.params.id)
+        if (post) {
             response.status(204).end()
-        }).catch(error => next(error))
+        } else {
+            response.status(404).end()
+        }
+    } catch (error) {
+        next(error)
+    }
 })
 
-postsRouter.post('/', (request, response, next) => {
+postsRouter.post('/', async (request, response, next) => {
     const body = request.body
 
     if (!body.caption) { //in the end should not accept no image, no caption is fine
@@ -40,9 +46,12 @@ postsRouter.post('/', (request, response, next) => {
         imageLocation: body.imageLocation,
     })
 
-    post.save().then(savedPost => {
-        response.json(savedPost)
-    }).catch(error => next(error))
+    try {
+        const savedPost = await post.save()
+        response.status(201).json(savedPost)
+    } catch (error) {
+        next(error)
+    }
 })
 
 postsRouter.put('/:id', (request, response, next) => {
@@ -52,14 +61,16 @@ postsRouter.put('/:id', (request, response, next) => {
         caption: body.caption
     }
 
-    Post.findByIdAndUpdate(
-        request.params.id,
-        post, { new: true, runValidators: true, context: 'query' }
-    )
-        .then(updatedPost => {
-            response.json(updatedPost)
-        })
-        .catch(error => next(error))
+    try {
+        const updatedPost = Post.findByIdAndUpdate(
+            request.params.id,
+            post,
+            { new: true, runValidators: true, context: 'query' }
+        )
+        response.json(updatedPost)
+    } catch (error) {
+        next(error)
+    }
 })
 
 module.exports = postsRouter
