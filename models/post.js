@@ -3,9 +3,13 @@ const mongoose = require('mongoose')
 const postSchema = new mongoose.Schema({
     imageLocation: {
         type: String,
-        required: true
+        // required: true TODO
     },
     caption: String,
+    author: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }
 }, { timestamps: true })
 
 postSchema.set('toJSON', {
