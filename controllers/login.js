@@ -23,7 +23,7 @@ loginRouter.post('/', async (request, response) => {
         id: user._id
     },
         config.JWT_SECRET,
-        { expiresIn: 60 * 60 }
+        { expiresIn: 60 * 60 * 24 * 14 }
     )
 
     response

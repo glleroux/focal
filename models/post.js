@@ -3,7 +3,6 @@ const mongoose = require('mongoose')
 const postSchema = new mongoose.Schema({
     imageLocation: {
         type: String,
-        // required: true TODO
     },
     caption: String,
     author: {

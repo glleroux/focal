@@ -3,6 +3,7 @@ const postsRouter = require('express').Router()
 const Post = require('../models/post')
 const User = require('../models/user')
 const jwt = require('jsonwebtoken')
+const uploadImage = require('../utils/cloudinary')
 
 postsRouter.get('/', async (request, response) => {
     const posts = await Post.find({}).populate('author', { username: 1, name: 1 })
@@ -22,7 +23,7 @@ postsRouter.get('/:id', async (request, response, next) => {
     }
 })
 
-postsRouter.delete('/:id', async (request, response) => {
+postsRouter.delete('/:id', async (request, response, next) => {
     try {
         const post = await Post.findByIdAndRemove(request.params.id)
         if (post) {
@@ -37,6 +38,7 @@ postsRouter.delete('/:id', async (request, response) => {
 
 const getTokenFrom = request => {
     const authorization = request.get('authorization')
+    console.log('authorization: ', authorization)
     if (authorization && authorization.startsWith('Bearer ')) {
         return authorization.replace('Bearer ', '')
     }
@@ -45,8 +47,8 @@ const getTokenFrom = request => {
 
 postsRouter.post('/', async (request, response, next) => {
     const body = request.body
-
     const token = getTokenFrom(request)
+    console.log('token from request: ', token)
     const decodedToken = jwt.verify(token, config.JWT_SECRET)
     if (!decodedToken.id) {
         return response.status(401).json({ error: 'token invalid' })
@@ -60,9 +62,12 @@ postsRouter.post('/', async (request, response, next) => {
         })
     }
 
+    const cloudinaryUrl = await uploadImage(body.file)
+    console.log('cloudinary url: ', cloudinaryUrl)
+
     const post = new Post({
         caption: body.caption,
-        imageLocation: body.imageLocation,
+        imageLocation: cloudinaryUrl,
         author: user._id
     })
 
@@ -76,7 +81,7 @@ postsRouter.post('/', async (request, response, next) => {
     }
 })
 
-postsRouter.put('/:id', (request, response, next) => {
+postsRouter.put('/:id', async (request, response, next) => {
     const body = request.body
 
     const post = {
@@ -84,7 +89,7 @@ postsRouter.put('/:id', (request, response, next) => {
     }
 
     try {
-        const updatedPost = Post.findByIdAndUpdate(
+        const updatedPost = await Post.findByIdAndUpdate(
             request.params.id,
             post,
             { new: true, runValidators: true, context: 'query' }
