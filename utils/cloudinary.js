@@ -1,12 +1,13 @@
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 const cloudinary = require('cloudinary').v2
 
 cloudinary.config({
     cloud_name: 'rtbckl',
-    api_key: '933441431759377',
-    api_secret: 'pybyDGzxdCE74RQtgxhEfQXqRj8',
+    api_key: '917256578329972',
+    api_secret: process.env.CLDNRY_SECRET,
     secure: true,
 })
-
 
 const uploadImage = async (file) => {
     const options = {

@@ -3,11 +3,15 @@ const supertest = require('supertest')
 const app = require('../app')
 const helper = require('./test_helper')
 const Post = require('../models/post')
+const getTokenFrom = require('../controllers/posts')
 
 //wrapped in superagent object
 const api = supertest(app)
 
+let authToken = {}
+
 beforeEach(async () => {
+    await loginUser()
     await Post.deleteMany({})
     for (let post of helper.initialPosts) {
         postObject = new Post(post)
@@ -40,6 +44,19 @@ describe('when there are initally some posts saved', () => {
 })
 
 describe('adding a post', () => {
+
+    test('fails with no token', async () => {
+        const newPost = {
+            caption: 'test post new',
+            imageLocation: "https://unsplash.com/photos/WC6MJ0kRzGw"
+        }
+
+        await api
+            .post('/api/posts')
+            .send(newPost)
+            .expect(401)
+    })
+
     test('succeeds with valid data', async () => {
         const newPost = {
             caption: 'test post new',
@@ -48,6 +65,7 @@ describe('adding a post', () => {
 
         await api
             .post('/api/posts')
+            .set('Authorization', 'Bearer ' + authToken)
             .send(newPost)
             .expect(201)
             .expect('Content-Type', /application\/json/)
@@ -69,6 +87,7 @@ describe('adding a post', () => {
 
         await api
             .post('/api/posts')
+            .set('Authorization', 'bearer ' + authToken)
             .send(invalidPost)
             .expect(400)
 
@@ -126,3 +145,19 @@ describe('deleting a post', () => {
 afterAll(async () => {
     await mongoose.connection.close()
 })
+
+const loginUser = async () => {
+
+    const userToLogin = {
+        username: 'existingtestuser',
+        password: 'easypassword'
+    }
+
+    const res = await api
+        .post('/api/login')
+        .send(userToLogin)
+        .expect(200)
+
+    authToken = res.body.token;
+}
+
