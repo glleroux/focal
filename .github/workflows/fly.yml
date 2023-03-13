@@ -15,10 +15,10 @@ jobs:
           path: focal-front # specify the path to checkout the repository to
 
       - name: Build UI
-        working-directory: ./focal-front # set the working directory to focal-front
         run: |
           npm install
           npm run build
+        working-directory: ./focal-front # set the working directory to focal-front
 
       - name: Checkout focal-server repository
         uses: actions/checkout@v3
@@ -27,17 +27,17 @@ jobs:
           path: focal
 
       - name: Remove current build directory
-        working-directory: ./focal
         run: |
           rm -rf build
+        working-directory: ./focal
 
       - name: Copy build directory to focal-server repository
-        working-directory: ./focal
         run: |
           cp -r ../focal-front/build/* build/
+        working-directory: ./focal
 
       - name: Deploy to Fly
-        working-directory: ./focal
         run: |
           npm install
           fly deploy --token ${{ secrets.FLY_API_TOKEN }}
+        working-directory: ./focal
