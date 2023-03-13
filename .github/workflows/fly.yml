@@ -8,9 +8,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Where am I
-        run: ls
-        run: ls ../
-        run: pwd
+        run: |
+          ls
+          ls ../
+          pwd
 
       - name: Checkout focal-fso repository
         uses: actions/checkout@v3
