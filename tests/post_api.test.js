@@ -3,7 +3,6 @@ const supertest = require('supertest')
 const app = require('../app')
 const helper = require('./test_helper')
 const Post = require('../models/post')
-const getTokenFrom = require('../controllers/posts')
 
 //wrapped in superagent object
 const api = supertest(app)
@@ -11,9 +10,8 @@ const api = supertest(app)
 let authToken = {}
 
 beforeEach(async () => {
-    await loginUser()
-    await Post.deleteMany({})
-    for (let post of helper.initialPosts) {
+    await Post.deleteMany({}) //delete all posts
+    for (let post of helper.initialPosts) { //create two new posts
         postObject = new Post(post)
         await postObject.save()
     }
@@ -45,55 +43,69 @@ describe('when there are initally some posts saved', () => {
 
 describe('adding a post', () => {
 
-    test('fails with no token', async () => {
-        const newPost = {
-            caption: 'test post new',
-            imageLocation: "https://unsplash.com/photos/WC6MJ0kRzGw"
-        }
+    describe('when user is not authenticated', () => {
+        test('fails with no token', async () => {
+            const postToCreate = {
+                caption: 'test post three',
+                imageLocation: "https://unsplash.com/photos/WC6MJ0kRzGw"
+            }
 
-        await api
-            .post('/api/posts')
-            .send(newPost)
-            .expect(401)
+            await api
+                .post('/api/posts')
+                .send(postToCreate)
+                .expect(401)
+        })
+
+        test('fails with an invalid token', async () => {
+            const postToCreate = {
+                caption: 'test post four',
+                imageLocation: "https://unsplash.com/photos/WC6MJ0kRzGw"
+            }
+
+            await api
+                .post('/api/posts')
+                .set('Authorization', 'Bearer ' + "aninvalidtoken")
+                .send(postToCreate)
+                .expect(401)
+        })
     })
 
-    test('succeeds with valid data', async () => {
-        const newPost = {
-            caption: 'test post new',
-            imageLocation: "https://unsplash.com/photos/WC6MJ0kRzGw"
-        }
+    describe('when user is authenticated', () => {
 
-        await api
-            .post('/api/posts')
-            .set('Authorization', 'Bearer ' + authToken)
-            .send(newPost)
-            .expect(201)
-            .expect('Content-Type', /application\/json/)
+        beforeAll(async () => {
+            await loginUser()
+        })
 
-        const postsAtEnd = await helper.postsInDb()
-        expect(postsAtEnd).toHaveLength(helper.initialPosts.length + 1)
+        afterAll(async () => {
+            authToken = {}
+        })
 
-        const captions = postsAtEnd.map(n => n.caption)
-        expect(captions).toContain(
-            'test post new'
-        )
+        test('succeds with valid data', async () => {
+            await api
+                .post('/api/posts')
+                .set('Authorization', 'Bearer ' + authToken)
+                .send(helper.newValidPost)
+                .expect(201)
+        })
+
+        test('fails with missing image', async () => {
+            await api
+                .post('/api/posts')
+                .set('Authorization', 'Bearer ' + authToken)
+                .send(helper.newInvalidPostMissingImage)
+                .expect(400)
+        })
+
+        test('fails with missing caption', async () => {
+            await api
+                .post('/api/posts')
+                .set('Authorization', 'Bearer ' + authToken)
+                .send(helper.newInvalidPostMissingCaption)
+                .expect(400)
+        })
 
     })
 
-    test('fails with 400 if invalid data', async () => {
-        const invalidPost = {
-            imageLocation: "https://unsplash.com/photos/WC6MJ0kRzGw"
-        }
-
-        await api
-            .post('/api/posts')
-            .set('Authorization', 'bearer ' + authToken)
-            .send(invalidPost)
-            .expect(400)
-
-        const postsAtEnd = await helper.postsInDb()
-        expect(postsAtEnd).toHaveLength(helper.initialPosts.length)
-    })
 })
 
 describe('viewing a post', () => {
@@ -109,9 +121,9 @@ describe('viewing a post', () => {
         expect(resultPost.body.id).toEqual(postToView.id)
     })
 
-    test('fails with 404 if not does not exist', async () => {
+    test('fails with 404 if does not exist', async () => {
 
-        const idToView = await helper.nonExistingId()
+        const idToView = await helper.nonExistingPostId()
         await api
             .get(`/api/posts/${idToView}`)
             .expect(404)
@@ -122,6 +134,27 @@ describe('viewing a post', () => {
         await api
             .get(`/api/posts/${idToView}`)
             .expect(400)
+    })
+})
+
+describe('updating a post', () => {
+    test('succeds with 200 if valid id', async () => {
+        const postsAtStart = await helper.postsInDb()
+        const postToUpdate = postsAtStart[0]
+
+        const newPostObject = {
+            caption: "an updated caption"
+        }
+
+        await api
+            .put(`/api/posts/${postToUpdate.id}`)
+            .send(newPostObject)
+            .expect(200)
+
+        const postsAtEnd = await helper.postsInDb()
+        const captions = postsAtEnd.map(p => p.caption)
+        expect(captions).toContain(newPostObject.caption)
+
     })
 })
 
@@ -140,6 +173,26 @@ describe('deleting a post', () => {
         const captions = postsAtEnd.map(p => p.caption)
         expect(captions).not.toContain(postToDelete.caption)
     })
+
+    test('fails with 404 if does not exist', async () => {
+        const idToDelete = await helper.nonExistingPostId()
+        await api
+            .delete(`/api/posts/${idToDelete}`)
+            .expect(404)
+
+        const postsAtEnd = await helper.postsInDb()
+        expect(postsAtEnd).toHaveLength(helper.initialPosts.length)
+    })
+
+    test('fails with 400 if invalid id', async () => {
+        const idToDelete = 'aninvalidid'
+        await api
+            .delete(`/api/posts/${idToDelete}`)
+            .expect(400)
+
+        const postsAtEnd = await helper.postsInDb()
+        expect(postsAtEnd).toHaveLength(helper.initialPosts.length)
+    })
 })
 
 afterAll(async () => {
@@ -147,12 +200,10 @@ afterAll(async () => {
 })
 
 const loginUser = async () => {
-
     const userToLogin = {
         username: 'existingtestuser',
         password: 'easypassword'
     }
-
     const res = await api
         .post('/api/login')
         .send(userToLogin)

@@ -59,6 +59,28 @@ describe('when there is initially one user in db', () => {
         const usersAtEnd = await helper.usersInDb()
         expect(usersAtEnd).toHaveLength(usersAtStart.length)
     })
+
+    describe('viewing a user', () => {
+
+        test('succeeds with a valid username', async () => {
+            const usersAtStart = await helper.usersInDb()
+            const usernameToView = usersAtStart[0].username
+
+            await api
+                .get(`/api/users/${usernameToView}`)
+                .expect(200)
+        })
+
+        test('fails with 404 if username does not exist', async () => {
+            const usernameToView = 'thisusernamedoesntexist'
+
+            await api
+                .get(`/api/users/${usernameToView}`)
+                .expect(404)
+        })
+    })
+
+
 })
 
 afterAll(async () => {

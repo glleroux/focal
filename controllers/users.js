@@ -7,12 +7,21 @@ usersRouter.get('/', async (request, response) => {
     response.json(users)
 })
 
-usersRouter.get('/:username', async (request, response) => {
+usersRouter.get('/:username', async (request, response, next) => {
 
-    const { username } = request.params
+    // const user = await User.find(request.params.username).populate('posts')
+    // response.json(user)
 
-    const user = await User.find({ username }).populate('posts')
-    response.json(user)
+    try {
+        const user = await User.find({ username: request.params.username }).populate('posts')
+        if (user.length) {
+            response.json(user);
+        } else {
+            response.status(404).end();
+        }
+    } catch (error) {
+        next(error);
+    }
 })
 
 usersRouter.post('/', async (request, response) => {

@@ -9,6 +9,7 @@ cloudinary.config({
     secure: true,
 })
 
+
 const uploadImage = async (file) => {
     const options = {
         folder: 'Focal',

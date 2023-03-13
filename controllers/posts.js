@@ -38,7 +38,6 @@ postsRouter.delete('/:id', async (request, response, next) => {
 
 const getTokenFrom = request => {
     const authorization = request.get('authorization');
-    console.log('authorization: ', authorization);
     if (authorization && authorization.startsWith('Bearer ')) {
         return authorization.replace('Bearer ', '');
     }
@@ -48,8 +47,13 @@ const getTokenFrom = request => {
 postsRouter.post('/', async (request, response, next) => {
     const body = request.body;
     const token = getTokenFrom(request);
-    console.log('token from request: ', token);
-    const decodedToken = jwt.verify(token, config.JWT_SECRET);
+    let decodedToken
+    if (!token) return response.status(401).json({ error: 'token missing' });
+    try {
+        decodedToken = jwt.verify(token, config.JWT_SECRET);
+    } catch (error) {
+        return response.status(401).json({ error: 'token invalid' });
+    }
     if (!decodedToken.id) {
         return response.status(401).json({ error: 'token invalid' });
     }
@@ -61,9 +65,13 @@ postsRouter.post('/', async (request, response, next) => {
             error: 'caption missing'
         });
     }
+    if (!body.imageLocation) { //in the end should not accept no image, no caption is fine
+        return response.status(400).json({
+            error: 'image missing'
+        });
+    }
 
-    const cloudinaryUrl = await uploadImage(body.file);
-    console.log('cloudinary url: ', cloudinaryUrl);
+    const cloudinaryUrl = await uploadImage(body.imageLocation);
 
     const post = new Post({
         caption: body.caption,
@@ -87,6 +95,8 @@ postsRouter.put('/:id', async (request, response, next) => {
     const post = {
         caption: body.caption
     };
+
+    console.log('here: ', post)
 
     try {
         const updatedPost = await Post.findByIdAndUpdate(
