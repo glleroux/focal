@@ -12,8 +12,10 @@ jobs:
         with:
           repository: glleroux/focal-front
           token: ${{ secrets.PAT }} # Replace with the name of your PAT secret
+          path: focal-front # specify the path to checkout the repository to
 
       - name: Build UI
+        working-directory: ./focal-front # set the working directory to focal-front
         run: |
           npm install
           npm run build
@@ -24,14 +26,17 @@ jobs:
           repository: glleroux/focal
 
       - name: Remove current build directory
+        working-directory: ./focal
         run: |
           rm -rf build
 
       - name: Copy build directory to focal-server repository
+        working-directory: ./focal
         run: |
           cp -r ../focal-front/build/* build/
 
       - name: Deploy to Fly
+        working-directory: ./focal
         run: |
           npm install
           fly deploy --token ${{ secrets.FLY_API_TOKEN }}
