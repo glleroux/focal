@@ -7,6 +7,9 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
+      - name: Where am I
+        run: pwd
+
       - name: Checkout focal-fso repository
         uses: actions/checkout@v3
         with:
@@ -16,6 +19,7 @@ jobs:
 
       - name: Build UI
         run: |
+          pwd
           npm install
           npm run build
         working-directory: ./focal-front # set the working directory to focal-front
