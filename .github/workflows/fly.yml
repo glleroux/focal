@@ -13,10 +13,13 @@ jobs:
           repository: glleroux/focal-front
           token: ${{ secrets.PAT }} # Replace with the name of your PAT secret
           path: focal-front # specify the path to checkout the repository to
+
+      - name: Where am I
         run: |
-          pwd
           ls
           ls ../
+          pwd
+        working-directory: ./focal-front # set the working directory to focal-front
 
       - name: Build UI
         run: |
