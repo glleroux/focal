@@ -24,6 +24,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: glleroux/focal
+          path: focal
 
       - name: Remove current build directory
         working-directory: ./focal
