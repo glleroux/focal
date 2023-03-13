@@ -8,6 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Where am I
+        run: ls
+        run: ls ../
         run: pwd
 
       - name: Checkout focal-fso repository
