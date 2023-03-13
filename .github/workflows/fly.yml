@@ -7,18 +7,16 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Where am I
-        run: |
-          ls
-          ls ../
-          pwd
-
       - name: Checkout focal-fso repository
         uses: actions/checkout@v3
         with:
           repository: glleroux/focal-front
           token: ${{ secrets.PAT }} # Replace with the name of your PAT secret
           path: focal-front # specify the path to checkout the repository to
+        run: |
+          pwd
+          ls
+          ls ../
 
       - name: Build UI
         run: |
